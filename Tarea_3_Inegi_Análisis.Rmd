@@ -1,0 +1,394 @@
+---
+title: "Inegi_Análisis"
+author: "Adair Macías"
+date: "2025-03-18"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 1
+    theme: cerulean
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(knitr)
+library(tidyverse)
+library(pracma)
+library(plotly)
+library(MASS)
+library(car)
+library(corrplot)
+library(rgl)
+library(scatterPlotMatrix)
+library(openxlsx)
+library(readxl)
+library(writexl)
+library(quantmod)
+knitr::knit_hooks$set(webgl = hook_webgl)
+```
+
+
+```{r}
+inegi_data <- read_xlsx("./Tarea_3_inegi_subdata.xlsx")
+```
+
+## Análisis de Correlación
+
+Llevo a cabo un análisis de correlación previo para ver qué variables muestran relación estadísticamente significativa antes de construir los modelos; en especial me servirá para el modelo de análisis múltiple
+
+```{r}
+# Selecciono solo las columnas numéricas (excluyendo 'Periodo')
+data_numeric <- inegi_data %>%  select_if(is.numeric)
+```
+
+
+```{r}
+# Calculo la matriz de correlación
+corr_matrix <- cor(data_numeric, use = "complete.obs")
+print("Matriz de correlación:")
+print(corr_matrix)
+
+```
+
+*Me ayude de ChatGPT para lograr tener este código para la prueba de Pearson*
+(Aunque creo que no es de gran utilidad para este caso ¿?)
+```{r}
+# Función para calcular la matriz de p-valores basada en la prueba de Pearson
+cor.mtest <- function(mat, conf.level = 0.95) {
+  mat <- as.matrix(mat)
+  n <- ncol(mat)
+  p.mat <- matrix(NA, n, n)
+  diag(p.mat) <- 0
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j], conf.level = conf.level)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  return(p.mat)
+}
+
+p_matrix <- cor.mtest(data_numeric)
+print("Matriz de p-valores:")
+print(p_matrix)
+```
+
+
+```{r}
+# Visualizar la matriz de correlación -> correlaciones significativas (p < 0.05)
+corrplot(corr_matrix, 
+         method = "color", 
+         type = "upper", 
+         tl.col = "black", 
+         tl.srt = 45, 
+         tl.cex = 0.8, # Tamaño de las etiquetas de texto
+         p.mat = p_matrix, 
+         sig.level = 0.05, 
+         insig = "blank",
+         title = "Matriz de Correlaciones Significativas",
+         mar = c(0,0,1,0))
+```
+
+
+## Análisis de Regresiones Lineales Simples
+
+##### IGAE vs. Actividad_Industrial
+```{r}
+# Ejemplo 1: Regresión simple para IGAE vs. Actividad_Industrial
+modelo_igae <- lm(IGAE ~ Actividad_Industrial, data = inegi_data)
+summary(modelo_igae)  # Muestra el resumen del modelo
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Graficar la relación y la línea de regresión
+ggplot(inegi_data, aes(x = Actividad_Industrial, y = IGAE)) +
+  geom_point(color = "cyan4") +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +
+  labs(title = "Regresión Lineal: IGAE vs. Actividad Industrial",
+       x = "Actividad Industrial",
+       y = "IGAE") +
+  theme(plot.title = element_text(hjust = 0.5))  # Centrar título
+```
+
+
+Análisis:
+Esta regresión lineal nos indica que hay una relación positiva y significativa entre ambas variables.
+Si analizamos la pendiente de la Actividad Industrial (1.188) indica que, en promedio, un aumento de una unidad en esta variable se traduce a un incremento de 1.188 unidades en el IGAE.
+
+La  posible explicación a este comportamiento es que la actividad industrial actúa como motor de crecimiento económico,lo que impulsa la inversión, el empleo y la generación de valor agregado en la economía, lo que se traduce en un efecto multiplicador que se refleja en el IGAE. 
+
+
+##### IVF_Construccion vs. Actividades Primarias
+```{r}
+# Ejemplo 2: Regresión simple para IVF_Construccion vs. Inversion_Fija_Bruta
+modelo_construccion <- lm(IVF_Construccion ~ Actividades_Primarias, data = inegi_data)
+summary(modelo_construccion)
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Graficar la relación y la línea de regresión
+ggplot(inegi_data, aes(x = Actividades_Primarias, y = IVF_Construccion)) +
+  geom_point(color = "green") +
+  geom_smooth(method = "lm", se = TRUE, color = "darkgreen") +
+  labs(title = "Regresión Lineal: IVF Construcción vs. Actividades_Primarias",
+       x = "Actividades_Primarias",
+       y = "IVF Construcción")+
+  theme(plot.title = element_text(hjust = 0.5))  # Centrar título
+```
+
+Análisis: 
+Esta regresión lineal no muestra que existe una relación positiva y estadísticamente significativa entre ambas variables. 
+La pendiente (.368) nos indica que por cada incremento unitario en las Actividades Primarias se asocia, en promedio, a un aumento de 0.368 unidades en la inversión en construcción.
+Para este caso, el valor de R^2 = .2961 nos indica que solo el 29.61% de la variabilidad de la inversión en construcción es explicada por las actividades primarias, lo que indica la influencia de otros factores en este comportamiento. 
+
+Una posible explicación es que las Actividades Primarias, que engloban sectores como la agricultura, minería y ganadería, pueden generar demanda para el desarrollo de infraestructura y obras de construcción (por ejemplo, instalaciones para procesamiento, almacenamiento o transporte), impulsando así la inversión en este sector. Sin embargo, el hecho de que una parte considerable de la variabilidad no se explique por este factor sugiere que intervienen además otros elementos como políticas públicas, financiamiento y condiciones del mercado inmobiliario.
+
+
+##### Tasa de Fondeo Gubernamental vs. TIIE
+```{r}
+# Ejemplo 3: Tasa de Fondeo Gubernamental vs. TIIE
+modelo_tasa <- lm(Tasa_Fondeo_Gubernamental ~ TIIE, data = inegi_data)
+summary(modelo_tasa)
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Graficar la relación y la línea de regresión
+ggplot(inegi_data, aes(x = TIIE, y = Tasa_Fondeo_Gubernamental)) +
+  geom_point(color = "deeppink") +
+  geom_smooth(method = "lm", se = TRUE, color = "darkorchid4") +
+  labs(title = "Regresión Lineal: Tasa de Fondeo Gubernamental vs. TIIE",
+       x = "TIIE",
+       y = "Tasa de Fondeo Gubernamental")+
+  theme(plot.title = element_text(hjust = 0.5))  # Centrar título
+```
+
+Análisis:
+Esta regresión lineal nos muestra una relación casi perfecta y positiva, con un R² de 0.9887, lo que implica que prácticamente el 98.87% de la variabilidad de la tasa de fondeo se explica por la TIIE. La pendiente de 0.8817 indica que, en promedio, por cada punto porcentual que aumenta la TIIE, la Tasa de Fondeo Gubernamental se incrementa en aproximadamente 0.88 puntos
+
+Una posible explicación a este comportamiento es que la TIIE actúa como una tasa de referencia clave en el mercado financiero mexicano, influyendo directamente en el costo de financiamiento para el gobierno.
+
+
+##### Precio Promedio del Petróleo vs. Exportaciones Petroleras
+```{r}
+# Ejemplo 4: Precio Promedio del Petróleo vs. Exportaciones Petroleras
+modelo_petroleo <- lm(Exportaciones_Petroleras ~ Precio_Promedio_Petroleo, data = inegi_data)
+summary(modelo_petroleo)
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Graficar la relación y la línea de regresión
+ggplot(inegi_data, aes(x = Precio_Promedio_Petroleo, y = Exportaciones_Petroleras)) +
+  geom_point(color = "orange") +
+  geom_smooth(method = "lm", se = TRUE, color = "darkgreen") +
+  labs(title = "Regresión Lineal: Exportaciones Petroleras vs. Precio del Petróleo",
+       x = "Precio Promedio del Petróleo",
+       y = "Exportaciones Petroleras")+
+  theme(plot.title = element_text(hjust = 0.5))  # Centrar título
+```
+
+
+Análisis:
+Esta regresión lineal nos muestra que hay una relación positiva y altamente significativa entre ambas variables. Por otra parte, dado que la pendiente es de 40.218, tenemos que, en promedio, un incremento unitario en el precio del petróleo se asocia con un aumento de aproximadamente 40.22 unidades en las exportaciones petroleras. 
+Además, el modelo presenta un alto poder explicativo con un R² de 0.8907, lo que significa que casi el 89.07% de la variabilidad en las exportaciones se puede atribuir a los cambios en el precio del petróleo.
+
+Una posible explicación para este comportamiento es que el precio del crudo es un factor determinante en la rentabilidad y la competitividad del sector petrolero; precios más altos incentivan la producción y, consecuentemente, las exportaciones, al mejorar la balanza comercial y atraer mayores inversiones en el sector.
+
+
+
+##### Exportaciones Totales vs. Importaciones Totales
+```{r}
+# Ejemplo 5: Precio Promedio del Petróleo vs. Exportaciones Petroleras
+modelo_Ex_Im <- lm(Importaciones_Totales ~ Exportaciones_Totales, data = inegi_data)
+summary(modelo_Ex_Im)
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Graficar la relación y la línea de regresión
+ggplot(inegi_data, aes(x = Exportaciones_Totales, y = Importaciones_Totales)) +
+  geom_point(color = "violetred") +
+  geom_smooth(method = "lm", se = TRUE, color = "slateblue4") +
+  labs(title = "Regresión Lineal: Exportaciones Totales vs. Importaciones Totales",
+       x = "Exportaciones Totales",
+       y = "Importaciones Totales") +
+  theme(plot.title = element_text(hjust = 0.5))  # Centrar título
+
+```
+
+
+Análisis: 
+Esta regresión lineal nos indica que hay una relación fuertemente positiva y estadísticamente significativa. 
+La pendiente de .995 no muestra que, en promedio, un aumento de una unidad en las Exportaciones Totales se asocia con un incremento cercano a una unidad (0.995) en las Importaciones Totales, un comportamiento casi proporcional entre ambas variables.
+Además el R^2 = .9869 no indica que el modelo explica casi el 99% de la variabilidad en las importaciones.
+
+Una posible explicación de este comportamiento es que, en el contexto de un mercado globalizado, un alto niveles de exportación suele mantener también un elevado nivel de importación.
+
+
+
+##### IGAE vs. TIIE
+```{r}
+# Ejemplo 6: IGAE vs. TIIE
+modelo_igae <- lm(IGAE ~ TIIE, data = inegi_data)
+summary(modelo_igae)  # Muestra el resumen del modelo
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Graficar la relación y la línea de regresión
+ggplot(inegi_data, aes(x = TIIE, y = IGAE)) +
+  geom_point(color = "cyan4") +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +
+  labs(title = "Regresión Lineal: IGAE vs. TIIE",
+       x = "TIEE",
+       y = "IGAE") +
+  theme(plot.title = element_text(hjust = 0.5))  # Centrar título
+```
+
+Análisis:
+Esta regresión lineal nos muestra que existe una relación negativa y estadísticamente significativa entre ambas variables. 
+El coeficiente de la TIIE (-0.8323) indica que, en promedio, un aumento de un punto porcentual en la TIIE se asocia con una disminución de aproximadamente 0.83 unidades en el IGAE, lo que sugiere que tasas de interés más altas pueden estar asociadas a una menor actividad económica.
+El valor de R^2 = 0.4236, explica alrededor del 42.36% de la variabilidad del IGAE, lo que implica que, aunque la TIIE es un factor importante, existen otros determinantes que influyen en el comportamiento del índice.
+
+Una posible explicación a este comportamiento es que la TIIE actúa como tasa de referencia en el mercado crediticio, y su aumento encarece el costo del financiamiento para empresas y consumidores, lo que puede moderar la inversión y el consumo, afectando negativamente el desempeño general de la economía reflejado en el IGAE.
+
+
+
+## Análisis de Regresiones Lineales Múltiples
+
+Nota: Realizo un análisis de Factor de Inflación de la Varianza (VIF)  para detectar multicolinealidad entre las variables analizadas. 
+
+El VIF (Variance Inflation Factor) mide cuánto aumenta la varianza de un coeficiente debido a la multicolinealidad.
+
+Interpretación del VIF:
+
+VIF < 5 → No hay multicolinealidad grave.
+
+VIF entre 5 y 10 → Hay multicolinealidad moderada.
+
+VIF > 10 → Multicolinealidad severa (considera eliminar variables o combinarlas).
+
+
+##### IGAE ~ Actividad Industrial + Actividades Primarias
+```{r}
+# Ejemplo 1: IGAE ~ Actividad Industrial + Actividades Primarias
+modelo_igae <- lm(IGAE ~ Actividad_Industrial + Actividades_Primarias, data = inegi_data)
+summary(modelo_igae)
+```
+
+```{r}
+# Representación 3D con scatter3d()
+scatter3d(IGAE ~ Actividad_Industrial + Actividades_Primarias, data = inegi_data, 
+          fit = "linear", residuals = TRUE, bg = "white", axis.scales = TRUE, 
+          grid = TRUE, ellipsoid = FALSE)
+```
+
+```{r}
+#Cálculo del VIF
+vif(modelo_igae)
+```
+
+
+Análisis:
+Esta regresión lineal múltiple nos muestra que entre el Índice Global de la Actividad Económica (IGAE), la Actividad Industrial y las Actividades Primarias existe una fuerte relación.
+El coeficiente de la Actividad Industrial (1.0022) indica que un incremento de una unidad en la Actividad Industrial se asocia con un aumento de aproximadamente 1.002 en el IGAE. 
+Por otro lado, el coeficiente de las Actividades Primarias (0.1859) indica que un aumento de una unidad en esta variable se asocia con un incremento de 0.186 en el IGAE.
+
+Estos resultados reflejan la fuerte dependencia del crecimiento económico en México respecto a la actividad industrial, con una menor pero significativa influencia del sector primario.
+
+
+
+##### Exportaciones Totales ~ Importaciones Totales + Tipo de Cambio Nominal
+```{r}
+# Ejemplo 2: Exportaciones Totales ~ Importaciones Totales + Tipo de Cambio Nominal
+modelo_exportaciones <- lm(Exportaciones_Totales ~ Importaciones_Totales + Tipo_Cambio_Nominal, data = inegi_data)
+summary(modelo_exportaciones)
+```
+
+```{r}
+# Representación 3D con scatter3d()
+scatter3d(Exportaciones_Totales ~ Importaciones_Totales + Tipo_Cambio_Nominal, data = inegi_data, 
+          fit = "linear", residuals = TRUE, bg = "white", axis.scales = TRUE, 
+          grid = TRUE, ellipsoid = FALSE)
+```
+
+```{r}
+#Cálculo del VIF
+vif(modelo_exportaciones)
+```
+
+
+Análisis:
+Esta regresión lineal múltiple nos indica que, entre las Exportaciones Totales, las Importaciones Totales y el Tipo de Cambio Nominal, existe una relación altamente significativa.
+El coeficiente de las Importaciones Totales (0.9474) indica que un incremento de una unidad en las importaciones está asociado con un aumento de 0.947 en las exportaciones. 
+
+Mientras que, por otra parte, l coeficiente del Tipo de Cambio Nominal (140.179) sugiere que un aumento de una unidad en el tipo de cambio está asociado con un incremento de aproximadamente 140.18 en las exportaciones. Esto implica que una depreciación del peso frente al dólar (aumento del tipo de cambio) favorece las exportaciones, lo que es consistente con la teoría económica, ya que un peso más débil hace que los bienes nacionales sean más competitivos en los mercados internacionales.
+
+
+##### IPC BMV ~ Tipo de Cambio Real Multilateral + Reservas Internacionales
+```{r}
+# Ejemplo 3: IPC BMV ~ Tipo de Cambio Real Multilateral + Reservas Internacionales
+modelo_ipc <- lm(IPC_BMV ~ Tipo_Cambio_Real_Multilateral + Reservas_Internacionales, data = inegi_data)
+summary(modelo_ipc)
+```
+
+```{r}
+# Representación 3D con scatter3d()
+scatter3d(IPC_BMV ~ Tipo_Cambio_Real_Multilateral + Reservas_Internacionales, data = inegi_data, 
+          fit = "linear", residuals = TRUE, bg = "white", axis.scales = TRUE, 
+          grid = TRUE, ellipsoid = FALSE)
+
+```
+
+```{r}
+#Cálculo del VIF
+vif(modelo_ipc)
+```
+
+
+Análisis:
+Esta regresión lineal múltiple nos muestra que hay relaciones diversas entre las variables.
+El coeficiente del Tipo de Cambio Real Multilateral (-0.0995) nos indica que un aumento en el tipo de cambio real multilateral está asociado con una disminución en el IPC BMV, aunque esta relación no es estadísticamente significativa.
+Por otra parte, el coeficiente de las Reservas Internacionales (1.591e-05) nos muestra que un aumento en las reservas internacionales está asociado con un leve aumento en el IPC BMV.
+
+En resumen, el comportamiento observado sugiere que las Reservas Internacionales juegan un papel más relevante en la estabilidad y confianza del mercado bursátil que el tipo de cambio real multilateral.
+
+
+##### Tasa de Fondeo Gubernamental ~ Cetes 28 Días + TIIE
+```{r}
+# Ejemplo 4: Tasa de Fondeo Gubernamental ~ Cetes 28 Días + TIIE
+modelo_tasa_fondeo <- lm(Tasa_Fondeo_Gubernamental ~ Cetes_28_Dias + TIIE, data = inegi_data)
+summary(modelo_tasa_fondeo)
+```
+
+```{r}
+# Representación 3D con scatter3d()
+scatter3d(Tasa_Fondeo_Gubernamental ~ Cetes_28_Dias + TIIE, data = inegi_data, 
+          fit = "linear", residuals = TRUE, bg = "white", axis.scales = TRUE, 
+          grid = TRUE, ellipsoid = FALSE)
+```
+
+```{r}
+#Cálculo del VIF
+vif(modelo_tasa_fondeo)
+```
+
+Análisis:
+El coeficiente estimado de 1.00153 de CETES a 28 días nos indica que, por cada aumento de una unidad en los Cetes a 28 días, la tasa de fondeo gubernamental aumenta en una cantidad casi equivalente. Esto es esperado, ya que tanto los Cetes como la tasa de fondeo gubernamental son instrumentos de referencia en el mercado financiero y ambos están influenciados por las decisiones de política monetaria del Banco de México.
+Por otra parte, la TIIE (Tasa de Interés Interbancaria de Equilibrio) no muestra una relación significativa con la Tasa de Fondeo Gubernamental. El valor de p = 0.378 indica que el coeficiente para TIIE no es estadísticamente significativo, lo que sugiere que, en este caso, la TIIE no tiene un efecto importante en la tasa de fondeo gubernamental.
+
+
+
+
