@@ -1,0 +1,1673 @@
+---
+title: "Tarea 5. Diferenciación e integración numérica (Vacaciones)."
+author: "Adair Macías"
+format: 
+  html:
+    grid: 
+      body-width: 1000px
+editor: visual
+jupyter: python3
+---
+
+Importamos packages y funciones necesarias:
+
+
+```{python}
+#| code-fold: true
+
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+from scipy.interpolate import lagrange
+from numpy.polynomial.polynomial import Polynomial
+from scipy.interpolate import CubicSpline
+
+import plotly.graph_objects as go
+from scipy.differentiate import derivative
+import numdifftools as nd
+from scipy.stats import norm
+from scipy import integrate
+
+```
+
+# Ejercicio 1.
+
+Para cada una de las siguientes funciones:
+
+-   Realiza la respectiva gráfica en el intervalo dado.
+
+-   Compara las gráficas de las derivadas aproximadas de la función `derivative` de `Scipy`, con dos tamaños de paso utilizando la función `nd.Derivative` y la derivada *exacta* en tal intervalo.
+
+-   Compara las gráficas de las segundas derivadas aproximadas con dos tamaños de paso utilizando la función `nd.Derivative` y la segunda derivada *exacta* en tal intervalo.
+
+-   Realiza las gráficas de los errores absolutos en cada caso.
+
+a)  $f(x)=e^{2x}-cos 2x$, $x\in [0,2]$
+
+###### Gráfica de la función en el intervalo dado
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+f = lambda x: np.exp(2*x) - np.cos(2*x)
+a = 0
+b = 2
+
+x_values = np.linspace(a,b,300)
+
+
+# - Grafica de la función (a) en el intervalo dado
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values, f(x_values))
+
+plt.grid()
+plt.show()
+
+#fig = go.Figure()
+#fig.add_trace(go.Scatter(x=x_values, y=f(x_values), mode='lines', name='f(x)'))
+#fig.update_layout(
+#  title="Función (a): $e^{2x}-\\cos(2x)$",
+#  xaxis_title="x", 
+#  yaxis_title="f(x)",
+#  template="plotly_white"
+#  )
+```
+
+###### Gráficas de la primera derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+df =  lambda x: 2*np.exp(2*x)+2*np.sin(2*x)
+
+df_1 = nd.Derivative(f, step=0.1, method='central', order=2)
+df_2 = nd.Derivative(f, step=0.25, method='central', order=2)
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x= x_values, y= df(x_values), mode='lines', name='1ra. derivada exacta', line=dict(color='goldenrod', width=3)))
+fig.add_trace(go.Scatter(x= x_values, y= df_1(x_values), mode='lines', name='h=0.1', line=dict(color='teal', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= df_2(x_values), mode='lines', name='h=0.25', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= derivative(f, x_values).df, mode='lines', name='SciPy', line=dict(color='aqua', width=2)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de aproximación de la primera derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+###### Gráfica de los errores de la primera derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-df_2(x_values)), mode='lines', name='h=0.25', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-df_1(x_values)), mode='lines', name='h=0.1', line=dict(color='teal', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-derivative(f, x_values).df), mode='lines', name='SciPy', line=dict(color='aqua', width=2)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de errores 1ra. derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+###### Gráfica de la segunda derivada
+
+```{python}
+#| code-fold: true
+
+
+ddf = lambda x: 4*np.exp(2*x) + 4*np.cos(2*x)
+
+ddf_1 = nd.Derivative(f, step=0.1, method='central', order=2, n=2)
+ddf_2 = nd.Derivative(f, step=0.25, method='central', order=2, n=2)
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= ddf_2(x_values), mode='lines', name='h=0.25', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= ddf_1(x_values), mode='lines', name='h=0.1', line=dict(color='teal', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= ddf(x_values), mode='lines', name='2da. derivada exacta', line=dict(color='goldenrod', width=1)))
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de aproximación de la 2da derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+
+```
+
+###### Gráfica de los errores de la segunda derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= abs(ddf(x_values)-ddf_2(x_values)), mode='lines', name='h=0.25', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(ddf(x_values)-ddf_1(x_values)), mode='lines', name='h=0.1', line=dict(color='teal', width=1)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de errores 2da. derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+b)  $f(x)=log(x+2)-(x+1)^2$, $x\in [0,5]$
+
+###### Gráfica de la función en el intervalo dado
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+f = lambda x: np.log(x+2)-(x+1)**2
+a = 0
+b = 5
+
+x_values = np.linspace(a,b,200)
+
+
+# - Grafica de la función (a) en el intervalo dado
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values, f(x_values))
+
+plt.grid()
+plt.show()
+#fig = go.Figure()
+#fig.add_trace(go.Scatter(x=x_values, y=f(x_values), mode='lines', name='f(x)'))
+#fig.update_layout(
+#  title="Función (a): $e^{2x}-\\cos(2x)$",
+#  xaxis_title="x", 
+#  yaxis_title="f(x)",
+#  template="plotly_white"
+#  )
+
+
+```
+
+###### Gráfica de la primera derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+# - Grafica de derivada (primera derivada)
+df = lambda x: 1/(x+2) - 2*(x+1)
+
+#Aproximación primera derivada (tamaños de paso h=.1 y h=0.25)
+df_1 = nd.Derivative(f, step=0.2, method='central', order=2)
+df_2 = nd.Derivative(f, step=0.35, method='central', order=2)
+
+fig_df = go.Figure()
+
+fig_df.add_trace(go.Scatter(x=x_values, y=df(x_values), mode='lines', name='1ra derivada exacta', line=dict(color='red', width=3)))
+fig_df.add_trace(go.Scatter(x=x_values, y=df_1(x_values), mode='lines', name='h=0.2', line=dict(color='aqua', width=1)))
+fig_df.add_trace(go.Scatter(x=x_values, y=df_2(x_values), mode='lines', name='h=0.35', line=dict(color='teal', width=1)))
+fig_df.add_trace(go.Scatter(x=x_values, y=derivative(f, x_values).df, mode='lines', name='Scipy', line=dict(color='goldenrod', width=2)))
+
+
+
+fig_df.update_layout(
+  title="Gráfica de aproximación de la primera derivada", 
+  xaxis_title="x", 
+  yaxis_title="f'(x)",
+  template="plotly_white",
+  width = 768,
+  height = 576
+  )
+fig_df.show()
+```
+
+###### Gráfica de los errores de la primera derivada.
+
+```{python}
+#| code-fold: true
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-df_2(x_values)), mode='lines', name='h=0.35', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-df_1(x_values)), mode='lines', name='h=0.2', line=dict(color='teal', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-derivative(f, x_values).df), mode='lines', name='SciPy', line=dict(color='aqua', width=2)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de errores de la 1ra derivada.",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+###### Gráfica de la segunda derivada
+
+```{python}
+#| code-fold: true
+
+
+ddf = lambda x: -1/(x+2)**2-2
+
+
+ddf_1 = nd.Derivative(f, step=0.2, method='central', order=2, n=2)
+ddf_2 = nd.Derivative(f, step=0.35, method='central', order=2, n=2)
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= ddf_2(x_values), mode='lines', name='h=0.35', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= ddf_1(x_values), mode='lines', name='h=0.2', line=dict(color='teal', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= ddf(x_values), mode='lines', name='2da derivada exacta', line=dict(color='goldenrod', width=1)))
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de aproximación de la 2da derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+
+```
+
+###### Gráfica de los errores de la segunda derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= abs(ddf(x_values)-ddf_2(x_values)), mode='lines', name='h=0.35', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(ddf(x_values)-ddf_1(x_values)), mode='lines', name='h=0.2', line=dict(color='teal', width=1)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de errores 2da. derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+c)  $f(x)=\sqrt{x} sen(x^2)$, $x\in [0,\pi]$
+
+###### Gráfica de la función en el intervalo dado
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+f = lambda x:  np.sqrt(x)*np.sin(x**2)
+a = 0
+b = np.pi
+
+x_values = np.linspace(a,b,500)
+
+
+# - Grafica de la función (a) en el intervalo dado
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values, f(x_values))
+
+plt.grid()
+plt.show()
+#fig = go.Figure()
+#fig.add_trace(go.Scatter(x=x_values, y=f(x_values), mode='lines', name='f(x)'))
+#fig.update_layout(
+#  title="Función (a): $e^{2x}-\\cos(2x)$",
+#  xaxis_title="x", 
+#  yaxis_title="f(x)",
+#  template="plotly_white"
+#  )
+
+
+```
+
+###### Gráfica de la primera derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+#| message: false 
+#| warning: false
+
+# - Grafica de derivada (primera derivada)
+df = lambda x: (1/(2*np.sqrt(x)))* np.sin(x**2) + 2*x**(3/2)* np.cos(x**2)
+
+#Aproximación primera derivada (tamaños de paso h=.1 y h=0.25)
+df_1 = nd.Derivative(f, step=0.05, method='central', order=2)
+df_2 = nd.Derivative(f, step=0.125, method='central', order=2)
+
+fig_df = go.Figure()
+
+fig_df.add_trace(go.Scatter(x=x_values, y=df(x_values), mode='lines', name='1ra derivada exacta', line=dict(color='red', width=3)))
+fig_df.add_trace(go.Scatter(x=x_values, y=df_1(x_values), mode='lines', name='h=0.05', line=dict(color='aqua', width=1)))
+fig_df.add_trace(go.Scatter(x=x_values, y=df_2(x_values), mode='lines', name='h=0.125', line=dict(color='teal', width=1)))
+fig_df.add_trace(go.Scatter(x=x_values, y=derivative(f, x_values).df, mode='lines', name='Scipy', line=dict(color='goldenrod', width=2)))
+
+
+
+fig_df.update_layout(
+  title="Gráfica de aproximación de la primera derivada", 
+  xaxis_title="x", 
+  yaxis_title="f'(x)",
+  template="plotly_white"
+  )
+fig_df.show()
+```
+
+###### Gráfica de los errores de la primera derivada.
+
+```{python}
+#| code-fold: true
+#| message: false 
+#| warning: false
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-df_2(x_values)), mode='lines', name='h=0.125', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-df_1(x_values)), mode='lines', name='h=0.05', line=dict(color='teal', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-derivative(f, x_values).df), mode='lines', name='SciPy', line=dict(color='aqua', width=2)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de errores de la 1ra derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+###### Gráfica de la segunda derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+#| message: false 
+#| warning: false
+
+ddf = lambda x: -np.sin(x**2)/(4 *x**(3/2)) + 4 *np.sqrt(x) *np.cos(x**2) - 4* x**(5/2)* np.sin(x**2)
+
+
+#Aproximación segunda derivada (tamaños de paso h=.1 y h=0.25)
+ddf_1 = nd.Derivative(f, step=0.05, method='central', order=2, n=2)
+ddf_2 = nd.Derivative(f, step=0.125, method='central', order=2, n=2)
+
+# - Grafica de la segunda derivada
+fig_ddf = go.Figure()
+
+fig_ddf.add_trace(go.Scatter(x=x_values, y=ddf_2(x_values), mode='lines', name='h=0.125', line=dict(color='teal', width=1)))
+fig_ddf.add_trace(go.Scatter(x=x_values, y=ddf_1(x_values), mode='lines', name='h=0.05', line=dict(color='royalblue', width=1)))
+
+fig_ddf.update_layout(
+  title="Gráfica de aproximación de la 2da derivada",
+  xaxis_title="x",
+  yaxis_title="f''(x)", 
+  template="plotly_white"
+  )
+fig_ddf.show()
+
+```
+
+###### Gráfica de los errores de la segunda derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+#| message: false 
+#| warning: false
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= abs(ddf(x_values)-ddf_2(x_values)), mode='lines', name='h=0.125', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(ddf(x_values)-ddf_1(x_values)), mode='lines', name='h=0.05', line=dict(color='teal', width=1)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de errores 2da. derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+d)  $f(x)=(cos\,3x)^2-e^{2x}$, $x\in [0,\pi/2]$
+
+###### Gráfica de la función en el intervalo dado
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+f = lambda x: (np.cos(3*x))**2 - np.exp(2*x)
+a = 0
+b = np.pi/2
+
+x_values = np.linspace(a,b,200)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values, f(x_values))
+
+plt.grid()
+plt.show()
+```
+
+###### Gráfica de la primera derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+# - Grafica de derivada (primera derivada) 
+
+df = lambda x: -3*np.sin(6*x) - 2*np.exp(2*x)
+
+
+df_1 = nd.Derivative(f, step=0.2, method='central', order=2)
+df_2 = nd.Derivative(f, step=0.05, method='central', order=2)
+
+fig_df = go.Figure()
+
+fig_df.add_trace(go.Scatter(x=x_values, y=df(x_values), mode='lines', name='1ra derivada exacta', line=dict(color='goldenrod', width=1)))
+fig_df.add_trace(go.Scatter(x=x_values, y=df_1(x_values), mode='lines', name='h=0.2', line=dict(color='aqua', width=1)))
+fig_df.add_trace(go.Scatter(x=x_values, y=df_2(x_values), mode='lines', name='h=0.05', line=dict(color='teal', width=1)))
+fig_df.add_trace(go.Scatter(x=x_values, y=derivative(f, x_values).df, mode='lines', name='Scipy', line=dict(color='goldenrod', width=2)))
+
+fig_df.update_layout(
+  title="Gráfica de aproximación de la 1ra derivada", 
+  xaxis_title="x", 
+  yaxis_title="f'(x)",
+  template="plotly_white"
+  )
+fig_df.show()
+```
+
+###### Gráfica del valor absoluto de los errores de la primera derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-df_2(x_values)), mode='lines', name='h=0.05', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-df_1(x_values)), mode='lines', name='h=0.2', line=dict(color='teal', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(df(x_values)-derivative(f, x_values).df), mode='lines', name='SciPy', line=dict(color='aqua', width=2)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de errores 1ra. derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+###### Gráfica de la segunda derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+ddf = lambda x: -18*np.cos(6*x) - 4*np.exp(2*x)
+
+ddf_1 = nd.Derivative(f, step=0.2, method='central', order=2, n=2)
+ddf_2 = nd.Derivative(f, step=0.05, method='central', order=2, n=2)
+
+# - Grafica de la segunda derivada
+fig_ddf = go.Figure()
+
+fig_ddf.add_trace(go.Scatter(x=x_values, y=ddf_2(x_values), mode='lines', name='h=0.05', line=dict(color='teal', width=1)))
+fig_ddf.add_trace(go.Scatter(x=x_values, y=ddf_1(x_values), mode='lines', name='h=0.2', line=dict(color='royalblue', width=1)))
+fig_ddf.add_trace(go.Scatter(x=x_values, y=ddf(x_values), mode='lines', name='2da Derivada Exacta', line=dict(color='goldenrod', width=1)))
+
+fig_ddf.update_layout(
+  title="Gráfica de aproximación de la 2da derivada",
+  xaxis_title="x",
+  yaxis_title="f''(x)", 
+  template="plotly_white"
+  )
+fig_ddf.show()
+
+```
+
+###### Gráfica del valor absoluto de los errores de la segunda derivada
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(x= x_values, y= abs(ddf(x_values)-ddf_2(x_values)), mode='lines', name='h=0.05', line=dict(color='royalblue', width=1)))
+fig.add_trace(go.Scatter(x= x_values, y= abs(ddf(x_values)-ddf_1(x_values)), mode='lines', name='h=0.2', line=dict(color='teal', width=1)))
+
+
+# Configurar diseño de la gráfica
+fig.update_layout(
+    title="Gráfica de errores 2da. derivada",
+    xaxis_title="x",
+    yaxis_title="y",
+    template="plotly_white",
+    width = 768,
+    height = 576
+)
+
+fig.show()
+```
+
+# Ejercicio 2
+
+Aproximar las siguientes integrales, cada caso hacer una gráfica de la función e indicar el área bajo la curva. 
+
+
+a)  
+
+\begin{equation}
+\int_0^1 e^{-x^2}\,dx
+\end{equation}
+
+###### Integral de la función
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+N = 10000
+x = np.random.uniform(0,1,N)
+y = np.random.uniform(0,1,N)
+
+f= lambda x: np.exp(-x**2)
+a = 0
+b = 1
+
+puntos_in = y <=f(x)
+
+
+x_values = np.linspace(a, b, 1000)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in")
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out")
+plt.plot(x_values,f(x_values), label="Función")
+plt.grid()
+plt.axis("square")
+plt.legend()
+plt.show()
+
+```
+
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+f= lambda x: np.exp(-x**2)
+a = 0
+b = 1
+
+
+x_values = np.linspace(a, b, 100)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 100), y1=0, y2=f(np.linspace(a,b, 100)), color="green", alpha=0.5)
+plt.grid()
+plt.axis("square")
+plt.legend()
+plt.show()
+
+  
+```
+
+
+Cuando no se solicite algún método en específico y se cuente con la función usaremos la función `integrate.quad` de SciPy. La cual brinda el valor aproximado de la integral y una estimación del error absoluto.
+
+```{python}
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+
+b)  
+
+\begin{equation}
+\int_0^\pi sen(x^2)\,dx
+\end{equation}
+
+###### Integral de la función
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+# Revisar código
+
+N = 10000
+x = np.random.uniform(0,np.pi,N)
+y = np.random.uniform(-1, 1,N) #CONSIDERAR LOS LIMITES VERTICALES
+
+f= lambda x: np.sin(x**2)
+a = 0
+b = np.pi
+
+puntos_in = ((y >= 0) & (y <= f(x))) | ((y < 0) & (y >= f(x))) 
+
+
+x_values = np.linspace(a, b, 100)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in")
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out")
+plt.plot(x_values,f(x_values), label="Función")
+plt.grid()
+plt.legend()
+plt.show()
+
+```
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+f= lambda x: np.sin(x**2)
+a = 0
+b = np.pi
+
+
+x_values = np.linspace(a, b, 100)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 100), y1=0, y2=f(np.linspace(a,b, 100)), color="green", alpha=0.5)
+plt.grid()
+plt.legend()
+plt.show()
+
+  
+```
+
+Cuando no se solicite algún método en específico y se cuente con la función usaremos la función `integrate.quad` de SciPy. La cual brinda el valor aproximado de la integral y una estimación del error absoluto.
+
+```{python}
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+
+
+c)  
+
+\begin{equation}
+\int_0^\pi \frac{sen(x)}{x}\,dx
+\end{equation}
+
+###### Integral de la función
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+N = 10000
+x = np.random.uniform(0,np.pi,N)
+y = np.random.uniform(0,1,N)
+
+f= lambda x: np.sin(x)/x
+a = 0
+b = np.pi
+
+puntos_in = y <=f(x)
+
+
+x_values = np.linspace(a, b, 100)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in")
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out")
+plt.grid()
+plt.legend()
+plt.show()
+
+```
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+f= lambda x: np.sin(x)/x
+a = 0
+b = np.pi
+
+
+x_values = np.linspace(a, b, 100)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 100), y1=0, y2=f(np.linspace(a,b, 100)), color="green", alpha=0.5)
+plt.grid()
+plt.legend()
+plt.show()
+
+  
+```
+
+
+Cuando no se solicite algún método en específico y se cuente con la función usaremos la función `integrate.quad` de SciPy. La cual brinda el valor aproximado de la integral y una estimación del error absoluto.
+
+```{python}
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+
+d)  
+
+\begin{equation}
+\int_0^\infty e^{-x^2} cos(x) \,dx
+\end{equation}
+
+###### Integral de la función
+###### Aunque va a infinito para graficarla no considere el infinito como valor de b, pues la función crece muy rápido y no se iba a percibir bien el área bajo la curva
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+N = 100000
+x = np.random.uniform(0,8,N)
+y = np.random.uniform(0,1,N)
+
+f= lambda x: np.exp(-x**2) * np.cos(x)
+a = 0
+b = 8
+
+puntos_in = y <=f(x)
+
+
+x_values = np.linspace(a, b, 1000)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in")
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out")
+plt.plot(x_values,f(x_values), label="Función")
+plt.grid()
+plt.legend()
+plt.show()
+
+```
+
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+f= lambda x: np.exp(-x**2) * np.cos(x)
+a = 0
+b = 8
+
+
+x_values = np.linspace(a, b, 1000)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 1000), y1=0, y2=f(np.linspace(a,b, 1000)), color="green", alpha=0.5)
+plt.grid()
+plt.legend()
+plt.show()
+
+```
+
+```{python}
+b = np.inf
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+e)  
+
+\begin{equation}
+\int_0^1 x^x \,dx
+\end{equation}
+
+###### Integral de la función
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+N = 100000
+x = np.random.uniform(0,1,N)
+y = np.random.uniform(0,1,N)
+
+f= lambda x: (x**x)
+a = 0
+b = 1
+
+puntos_in = y <=f(x)
+
+
+x_values = np.linspace(a, b, 1000)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in")
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out")
+plt.plot(x_values,f(x_values), label="Función")
+plt.grid()
+plt.axis("square")
+plt.legend()
+plt.show()
+
+```
+
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+f= lambda x: (x**x)
+a = 0
+b = 1
+
+
+x_values = np.linspace(a, b, 100)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 100), y1=0, y2=f(np.linspace(a,b, 100)), color="green", alpha=0.5)
+plt.grid()
+plt.axis("square")
+plt.legend()
+plt.show()
+
+```
+
+```{python}
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+f)  
+
+\begin{equation}
+\int_1^5 e^{-x^2} x^3 dx
+\end{equation}
+
+###### Integral de la función
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+N = 10000
+x = np.random.uniform(1,5,N)
+y = np.random.uniform(0,0.45,N)
+
+f= lambda x: np.exp(-x**2) * x**3
+a = 1
+b = 5
+
+puntos_in = y <=f(x)
+
+
+x_values = np.linspace(a, b, 1000)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in")
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out")
+plt.plot(x_values,f(x_values), label="Función")
+plt.grid()
+plt.legend()
+plt.show()
+
+```
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+f= lambda x: np.exp(-x**2) * x**3
+a = 1
+b = 5
+
+
+x_values = np.linspace(a, b, 300)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 300), y1=0, y2=f(np.linspace(a,b, 300)), color="green", alpha=0.5)
+plt.grid()
+plt.legend()
+plt.show()
+
+```
+
+```{python}
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+g)  
+
+\begin{equation}
+\int_0^1 \sqrt{1-x^2} dx
+\end{equation}
+
+###### Integral de la función
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+N = 10000
+x = np.random.uniform(0,1,N)
+y = np.random.uniform(0,1,N)
+
+f= lambda x: np.sqrt(1-x**2) 
+a = 0
+b = 1
+
+puntos_in = x**2 + y**2 <= 1
+
+
+x_values = np.linspace(a, b, 100)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in", alpha =0.05)
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out", alpha =0.05)
+plt.grid()
+plt.axis("square")
+plt.legend()
+plt.show()
+
+```
+
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+f= lambda x: np.sqrt(1-x**2) 
+a = 0
+b = 1
+
+
+x_values = np.linspace(a, b, 100)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 100), y1=0, y2=f(np.linspace(a,b, 100)), color="green", alpha=0.5)
+plt.grid()
+plt.axis("square")
+plt.legend()
+plt.show()
+
+```
+
+
+
+```{python}
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+h)  
+
+\begin{equation}
+\int_0^\infty \frac{x}{e^x-1} dx
+\end{equation}
+
+
+###### Integral de la función
+
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+N = 10000
+x = np.random.uniform(0,30,N)
+y = np.random.uniform(0,1,N)
+
+f= lambda x: x/(np.exp(x)-1)
+a = 0
+b = 30
+
+puntos_in = y <=f(x)
+
+
+x_values = np.linspace(a, b, 1000)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in")
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out")
+plt.plot(x_values,f(x_values), label="Función")
+plt.grid()
+plt.legend()
+plt.show()
+
+```
+
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+#| message: false 
+#| warning: false
+
+f= lambda x: x/(np.exp(x)-1)
+a = 0
+b = 30
+
+
+x_values = np.linspace(a, b, 300)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 300), y1=0, y2=f(np.linspace(a,b, 300)), color="green", alpha=0.5)
+plt.grid()
+plt.legend()
+plt.show()
+
+```
+
+
+```{python}
+b = np.inf
+
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+i)  
+
+\begin{equation}
+\int_0^1 \frac{1}{\sqrt{x^4+1}} dx
+\end{equation}
+
+###### Integral de la función
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+
+N = 10000
+x = np.random.uniform(0,1,N)
+y = np.random.uniform(0,1,N)
+
+f= lambda x: 1/(np.sqrt(x**4+1))
+a = 0
+b = 1
+
+puntos_in = y <=f(x)
+
+
+x_values = np.linspace(a, b, 1000)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x[puntos_in], y[puntos_in], 'o',  color="red", label = "Puntos in")
+plt.plot(x[~puntos_in], y[~puntos_in], 'o',  color="blue", label = "Puntos out")
+plt.plot(x_values,f(x_values), label="Función")
+plt.grid()
+plt.axis("square")
+plt.legend()
+plt.show()
+
+```
+
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+#| message: false 
+#| warning: false
+
+f= lambda x: 1/(np.sqrt(x**4+1))
+a = 0
+b = 1
+
+
+x_values = np.linspace(a, b, 300)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(x_values,f(x_values), label="Función")
+plt.fill_between(np.linspace(a,b, 300), y1=0, y2=f(np.linspace(a,b, 300)), color="green", alpha=0.5)
+plt.grid()
+plt.axis("square")
+plt.legend()
+plt.show()
+
+```
+
+```{python}
+integral = integrate.quad(f, a, b)
+print(integral)
+```
+
+
+
+# Ejercicio 3
+
+Aproximar las siguientes integrales dobles y triples, llevar a cabo la gráfica cuando se indique y comparar con el valor *exacto* de la integral.
+
+a)  Realizar gráfica
+
+\begin{equation}
+\int_{-1}^{1}\int_1^2 (3y^2-x^2+5) dx dy
+\end{equation}
+
+###### Gráfica
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+x = np.linspace(1, 2, 100)
+y = np.linspace(-1, 1, 100)
+X, Y = np.meshgrid(x, y)
+
+Z = 3 * Y**2 - X**2 + 5
+
+fig = go.Figure(data=[
+    go.Surface(z=Z, x=X, y=Y, colorscale='Viridis', opacity=0.9, name="Superficie"),
+])
+
+
+fig.update_layout(
+    title='$f(x,y)=3y^2-x^2+5$',
+    scene=dict(
+        xaxis_title='x',
+        yaxis_title='y',
+        zaxis_title='f(x,y)',
+    ),
+    margin=dict(l=0, r=0, b=0, t=40)
+)
+
+fig.show()
+
+```
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+x_val = ([1, 2])
+y_val1 = ([-1, -1])
+y_val2 = ([1, 1])
+
+plt.figure(figsize=(8, 6))
+
+
+plt.plot(x_val, y_val1)
+plt.plot(x_val, y_val2)
+plt.fill_between(x_val, y1=y_val1, y2=y_val2, color='skyblue', alpha=0.6)
+plt.title("Región de integración", fontsize=14)
+plt.grid()
+plt.show()
+
+
+```
+
+###### Resultado integral doble
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+def integrand(x, y):
+    return 3 * y**2 - x**2 + 5
+
+resultado, error = integrate.dblquad(integrand, -1, 1, lambda y: 1, lambda y: 2)
+
+resultado, error
+```
+
+b)  
+
+\begin{equation}
+\int_{0}^{6}\int_1^5 \sqrt{x+4y} dx dy
+\end{equation}
+
+###### Gráfica
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+x = np.linspace(1, 5, 100)
+y = np.linspace(0, 6, 100)
+X, Y = np.meshgrid(x, y)
+
+Z = np.sqrt(X+4*Y)
+
+fig = go.Figure(data=[
+    go.Surface(z=Z, x=X, y=Y, colorscale='Viridis', opacity=0.9, name="Superficie"),
+])
+
+
+fig.update_layout(
+    title='$f(x,y)=\sqrt(x+4y)$',
+    scene=dict(
+        xaxis_title='x',
+        yaxis_title='y',
+        zaxis_title='f(x,y)',
+    ),
+    margin=dict(l=0, r=0, b=0, t=40)
+)
+
+fig.show()
+
+```
+
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+x_val = ([1, 5])
+y_val1 = ([0, 0])
+y_val2 = ([6, 6])
+
+plt.figure(figsize=(8, 6))
+
+
+plt.plot(x_val, y_val1)
+plt.plot(x_val, y_val2)
+plt.fill_between(x_val, y1=y_val1, y2=y_val2, color='skyblue', alpha=0.6)
+plt.title("Región de integración", fontsize=14)
+plt.grid()
+plt.show()
+
+
+```
+
+###### Resultado integral doble
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+def integrand(x, y):
+    return np.sqrt(x+4*y)
+
+resultado, error = integrate.dblquad(integrand, 0, 6, lambda y: 1, lambda y: 5)
+
+resultado, error
+```
+
+c)  REVISAR estructura de la integral
+Razón: Se integra primero respecto a x pero el límite superior es una función de x (log(x)), lo que creo no tiene sentido dado que deberían de ser limites en funciones de y.
+
+\begin{equation}
+\int_{1}^{e}\int_0^{log(x)} x^3 dx dy
+\end{equation}
+
+###### Gráfica
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+x = np.linspace(0, np.log(np.exp(1)), 100)
+y = np.linspace(1, np.exp(1), 100)
+X, Y = np.meshgrid(x, y)
+
+Z = X**3
+
+fig = go.Figure(data=[
+    go.Surface(z=Z, x=X, y=Y, colorscale='Viridis', opacity=0.9, name="Superficie"),
+])
+
+
+fig.update_layout(
+    title='$f(x,y)=x^3$',
+    scene=dict(
+        xaxis_title='x',
+        yaxis_title='y',
+        zaxis_title='f(x,y)',
+    ),
+    margin=dict(l=0, r=0, b=0, t=40)
+)
+
+fig.show()
+
+```
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+x_val = ([0, np.log(np.exp(1))])
+y_val1 = ([1, 1])
+y_val2 = ([np.exp(1), np.exp(1)])
+
+plt.figure(figsize=(8, 6))
+
+
+plt.plot(x_val, y_val1)
+plt.plot(x_val, y_val2)
+plt.fill_between(x_val, y1=y_val1, y2=y_val2, color='skyblue', alpha=0.6)
+plt.title("Región de integración", fontsize=14)
+plt.grid()
+plt.show()
+
+
+```
+
+###### Resultado integral doble
+###### No sé cual sea el error, además de lo comentado al inicio de este inciso
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+#def integrand(x, y):
+ #  return x**3
+
+#resultado, error = integrate.dblquad(integrand, 1, np.exp(x), lambda x: 0, lambda x: np.log(y))
+
+#resultado, error
+```
+
+d)  
+
+\begin{equation}
+\int\int_D 30ye^x dx dy
+\end{equation}
+
+Donde $D\subset \mathbb{R}^2$ es la región en la siguiente gráfica.
+
+###### Gráfica
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+x_val = np.array([0,4])
+y_val1 = np.array([0, 1])
+y_val2 = np.array([0, 4])
+
+plt.figure(figsize=(8,6))
+plt.plot(x_val, y_val1)
+plt.plot(x_val, y_val2)
+plt.fill_between(x_val, y1=y_val1, y2=y_val2, color="firebrick", alpha=0.5)
+plt.title("Región de integración", fontsize=14)
+plt.grid()
+plt.show()
+
+  
+```
+
+###### Resultado integral doble
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+#Prefiero integrar dydx para hacerlo un poco más sencillo
+
+def integrand(y, x):
+    return 30*y*np.exp(x)
+  
+resultado, error = integrate.dblquad(integrand, 0, 4, lambda x: 0.25*x, lambda x: x)
+
+resultado, error
+```
+
+e)
+
+\begin{equation}
+\int\int \int_B z e^{x+y} dx\, dy\, dz, \, B=[0,1] \times [0,1] \times [0,1]
+\end{equation}
+
+
+###### Resultado integral triple
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+def integrand(z,y,x):
+    return z*np.exp(x+y)
+
+resultado, error = integrate.tplquad(
+  integrand,
+  0, 1,
+  lambda x: 0, lambda x: 1,
+  lambda x , y: 0, lambda x, y:1)
+
+resultado, error
+```
+
+f)  
+
+\begin{equation}
+\int_0^1 \int_0^x \int_0^y (y+xz) dz\, dy\, dx
+\end{equation}
+
+###### Gráfica --- CHATGPT
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+import numpy as np
+import plotly.graph_objects as go
+
+# Número de puntos en cada eje (para mayor claridad usamos una resolución moderada)
+n = 30
+x_vals = np.linspace(0, 1, n)
+y_vals = np.linspace(0, 1, n)
+z_vals = np.linspace(0, 1, n)
+
+# Generamos una malla en el cubo unitario
+X, Y, Z = np.meshgrid(x_vals, y_vals, z_vals, indexing='ij')
+
+# Creamos una máscara que selecciona solo los puntos que están en D:
+# Es decir, puntos donde 0 <= x <= 1, 0 <= y <= x y 0 <= z <= y.
+mask = (Y <= X) & (Z <= Y)
+
+# Extraemos los puntos de la región D
+X_reg = X[mask]
+Y_reg = Y[mask]
+Z_reg = Z[mask]
+
+# Calculamos la función en cada punto de D: f(x,y,z)= y + x*z
+F = Y_reg + X_reg * Z_reg
+
+# Creamos el gráfico de dispersión 3D con Plotly
+fig = go.Figure(data=[go.Scatter3d(
+    x = X_reg,
+    y = Y_reg,
+    z = Z_reg,
+    mode = 'markers',
+    marker = dict(
+        size = 4,
+        color = F,                  # Coloreamos según el valor de f(x,y,z)
+        colorscale = 'Viridis',
+        colorbar = dict(title='f(x,y,z)'),
+        opacity = 0.8
+    )
+)])
+
+fig.update_layout(
+    title="Visualización de la región de integración y f(x,y,z)= y + x*z",
+    scene = dict(
+        xaxis_title="x",
+        yaxis_title="y",
+        zaxis_title="z"
+    )
+)
+
+fig.show()
+
+```
+
+###### Resultado integral triple
+
+```{python}
+#| code-fold: true
+#| fig-align: 'center'
+
+def integrand(z,y,x):
+    return y + x*z
+
+resultado, error = integrate.tplquad(integrand, 
+0, 1, #Límites x
+lambda x: 0, lambda x: x, #Limites y
+lambda x, y: 0, lambda x, y: y) #Límites z
+
+resultado, error
+```
+
+# Ejercicio 4
+
+De [scipy.stats](@https://docs.scipy.org/doc/scipy/reference/stats.html) elige alguna distribución de probabilidad continua, realiza la gráfica y encuentra la probabilidad que la variable aleatoria tome un valor en un intervalo dado. Compara el resultado con el método `cdf`.
+
+```{python}
+from scipy.stats import fisk
+from scipy.integrate import quad
+fig, ax = plt.subplots(1, 1)
+
+
+c = 5
+mean, var, skew, kurt = fisk.stats(c, moments='mvsk')
+print(f"Media: {mean}, Varianza: {var}, Sesgo: {skew}, Kurt: {kurt}")
+
+
+x = np.linspace(fisk.ppf(0.01, c), fisk.ppf(0.99, c), 100)
+ax.plot(x, fisk.pdf(x, c),
+'r-', lw=2, label='fisk pdf (c=5)')
+
+rv = fisk(c)
+ax.plot(x, rv.pdf(x), 'k--', lw=2, label='frozen pdf')
+
+#datos aleatorios
+r = fisk.rvs(c, size=500)
+ax.hist(r, density=True, bins='auto', histtype='stepfilled', alpha=0.2)
+ax.set_xlim([x[0], x[-1]])
+ax.legend(loc='best', frameon=False)
+plt.title("Distribución Fisk (c=5)")
+plt.show()
+
+
+# Cálculo de probabilidad entre 2 y 4 con cdf
+p_cdf = fisk.cdf(4, c) - fisk.cdf(2, c)
+print(f"Probabilidad usando CDF P(2 < X < 4): {p_cdf:.4f}")
+
+#Calculo de probabilidad integrando
+p_integral, _ = quad(fisk.pdf, 2, 4, args=(c,))
+print(f"Probabilidad usando integración de la PDF: {p_integral:.4f}")
+
+
+
+```
