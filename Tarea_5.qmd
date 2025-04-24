@@ -661,6 +661,7 @@ plt.legend()
 plt.show()
   
 ```
+
 **Aproximación de la integral.**
 
 Cuando no se solicite algún método en específico y se cuente con la función usaremos la función `integrate.quad` de SciPy. La cual brinda el valor aproximado de la integral y una estimación del error absoluto.
@@ -702,6 +703,7 @@ plt.legend()
 plt.show()
 
 ```
+
 ```{python}
 #| code-fold: true
 
@@ -782,7 +784,6 @@ plt.show()
 
 ```
 
-
 ```{python}
 
 #| code-fold: true
@@ -820,6 +821,7 @@ plt.grid()
 plt.legend()
 plt.show()
 ```
+
 ```{python}
 #| code-fold: true
 
@@ -829,15 +831,13 @@ integral_montecarlo = (b-a)* ymax *(sum(puntos_in_positivo)/(sum(puntos_in_posit
 print(f'El valor aproximado de la integral con el método de Montecarlo es: {integral_montecarlo}')
 ```
 
-
 c)  
 
 \begin{equation}
 \int_0^\pi \frac{sen(x)}{x}\,dx
 \end{equation}
 
-**Integral de la función**
-**Gráfica de la función y área bajo la curva**
+**Integral de la función** **Gráfica de la función y área bajo la curva**
 
 ```{python}
 #| code-fold: true
@@ -860,6 +860,7 @@ plt.show()
 
   
 ```
+
 **Aproximación de la integral**
 
 ```{python}
@@ -868,6 +869,7 @@ plt.show()
 integral = integrate.quad(f, a, b)
 print(f'La aproximación de la integral es: {integral[0]}, con un error aproximado de {integral[1]}')
 ```
+
 **Aproximación de la integral por el método de Montecarlo.**
 
 ```{python}
@@ -897,14 +899,13 @@ plt.legend()
 plt.show()
 
 ```
+
 ```{python}
 #| code-fold: true
 
 integral_montecarlo = (b-a)* ymax *(sum(puntos_in)/N) 
 print(f'El valor aproximado de la integral con el método de Montecarlo es: {integral_montecarlo}')
 ```
-
-
 
 d)  
 
@@ -916,14 +917,13 @@ d)
 
 ###### Aunque va a infinito, para graficarla no considere el infinito como valor de b, pues la función crece muy rápido y no se iba a percibir bien el área bajo la curva
 
-
 ```{python}
 #| code-fold: true
 #| fig-align: 'center'
 
 f= lambda x: np.exp(-x**2) * np.cos(x)
 a = 0
-b = 8
+b = 3
 
 
 x_values = np.linspace(a, b, 1000)
@@ -941,7 +941,7 @@ plt.show()
 ```{python}
 #| code-fold: true
 
-integral = integrate.quad(f, a, b)
+integral = integrate.quad(f, a, np.inf)
 print(f'La aproximación de la integral es: {integral[0]}, con un error aproximado de {integral[1]}')
 ```
 
@@ -953,6 +953,7 @@ print(f'La aproximación de la integral es: {integral[0]}, con un error aproxima
 
 
 N = 100000
+b = np.pi/2
 
 ymax = 1
 ymin = 0
@@ -973,7 +974,6 @@ plt.legend()
 plt.show()
 
 ```
-
 
 ```{python}
 #| code-fold: true
@@ -1013,6 +1013,7 @@ plt.legend()
 plt.show()
 
 ```
+
 **Aproximación de la integral**
 
 ```{python}
@@ -1021,7 +1022,6 @@ plt.show()
 integral = integrate.quad(f, a, b)
 print(f'La aproximación de la integral es: {integral[0]}, con un error aproximado de {integral[1]}')
 ```
-
 
 ```{python}
 #| code-fold: true
@@ -1057,7 +1057,6 @@ integral_montecarlo = (b-a)* ymax *(sum(puntos_in)/N)
 print(f'El valor aproximado de la integral con el método de Montecarlo es: {integral_montecarlo}')
 ```
 
-
 f)  
 
 \begin{equation}
@@ -1067,7 +1066,6 @@ f)
 **Integral de la función**
 
 **Gráfica de la función y área bajo la curva**
-
 
 ```{python}
 #| code-fold: true
@@ -1090,8 +1088,8 @@ plt.show()
 
 ```
 
-
 **Aproximación de la integral**
+
 ```{python}
 #| code-fold: true
 #| 
@@ -1127,13 +1125,13 @@ plt.legend()
 plt.show()
 
 ```
+
 ```{python}
 #| code-fold: true
 
 integral_montecarlo = (b-a)* ymax *(sum(puntos_in)/N) 
 print(f'El valor aproximado de la integral con el método de Montecarlo es: {integral_montecarlo}')
 ```
-
 
 g)  
 
@@ -1214,7 +1212,6 @@ integral_montecarlo = (b-a)* ymax *(sum(puntos_in)/N)
 print(f'El valor aproximado de la integral con el método de Montecarlo es: {integral_montecarlo}')
 ```
 
-
 h)  
 
 \begin{equation}
@@ -1233,7 +1230,7 @@ h)
 
 f= lambda x: x/(np.exp(x)-1)
 a = 0
-b = 30
+b = 10
 
 
 x_values = np.linspace(a, b, 300)
@@ -1253,8 +1250,7 @@ plt.show()
 ```{python}
 #| code-fold: true
 
-b = np.inf
-integral = integrate.quad(f, a, b)
+integral = integrate.quad(f, a, np.inf)
 print(f'La aproximación de la integral es: {integral[0]}, con un error aproximado de {integral[1]}')
 ```
 
@@ -1268,7 +1264,7 @@ print(f'La aproximación de la integral es: {integral[0]}, con un error aproxima
 N = 10000
 
 a = 0
-b = 30
+b = 10
 
 ymax = 1
 ymin = 0
@@ -1289,6 +1285,7 @@ plt.legend()
 plt.show()
 
 ```
+
 ```{python}
 #| code-fold: true
 
@@ -1296,14 +1293,13 @@ integral_montecarlo = (b-a)* ymax *(sum(puntos_in)/N)
 print(f'El valor aproximado de la integral con el método de Montecarlo es: {integral_montecarlo}')
 ```
 
-
 i)  
 
 \begin{equation}
 \int_0^1 \frac{1}{\sqrt{x^4+1}} dx
 \end{equation}
 
-**Integral de la función
+\*\*Integral de la función
 
 **Gráfica de la función y área bajo la curva**
 
@@ -1339,7 +1335,6 @@ plt.show()
 integral = integrate.quad(f, a, b)
 print(f'La aproximación de la integral es: {integral[0]}, con un error aproximado de {integral[1]}')
 ```
-
 
 **Aproximación de la integral por el método de Montecarlo**
 
@@ -1380,8 +1375,6 @@ plt.show()
 integral_montecarlo = (b-a)* ymax *(sum(puntos_in)/N) 
 print(f'El valor aproximado de la integral con el método de Montecarlo es: {integral_montecarlo}')
 ```
-
-
 
 # Ejercicio 3
 
@@ -1464,7 +1457,6 @@ integral_exacta = 22/3
 error_absoluto = abs(integral_exacta - integral[0])
 print(f'El error absoluto es:{error_absoluto}')
 ```
-
 
 b)  
 
@@ -1670,7 +1662,6 @@ integral = integrate.dblquad(integrand, 0, 4, lambda x: 0.25*x, lambda x: x)
 print(f'La aproximación de la integral es: {integral[0]}, con un error aproximado de {integral[1]}')
 ```
 
-
 **Comparación valor real - valor aproximado**
 
 ```{python}
@@ -1684,7 +1675,6 @@ e)
 \begin{equation}
 \int\int \int_B z e^{x+y} dx\, dy\, dz, \, B=[0,1] \times [0,1] \times [0,1]
 \end{equation}
-
 
 **Resultado integral triple**
 
@@ -1711,7 +1701,6 @@ integral_exacta = ((np.e - 1)**2)/2
 error_absoluto = abs(integral_exacta - integral[0])
 print(f'El error absoluto es:{error_absoluto}')
 ```
-
 
 f)  
 
@@ -1802,11 +1791,9 @@ error_absoluto = abs(integral_exacta - integral[0])
 print(f'El error absoluto es:{error_absoluto}')
 ```
 
-
 # Ejercicio 4
 
 De [scipy.stats](@https://docs.scipy.org/doc/scipy/reference/stats.html) elige alguna distribución de probabilidad continua, realiza la gráfica y encuentra la probabilidad que la variable aleatoria tome un valor en un intervalo dado. Compara el resultado con el método `cdf`.
-
 
 ```{python}
 #| code-fold: true
@@ -1826,8 +1813,6 @@ plt.show()
 
 
 ```
-
-
 
 Elegimos el intervalo $[1,2]$ para calcular la integral.
 
@@ -1865,4 +1850,3 @@ Ahora se obtiene el valor por medio del método `cdf` (cumulative distribution f
 ```{python}
 fisk.cdf(2, a) - fisk.cdf(1, a)
 ```
-
