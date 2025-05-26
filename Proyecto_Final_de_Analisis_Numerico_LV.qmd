@@ -1,0 +1,460 @@
+---
+title: "Proyecto de Análisis Númerico:"
+format: html
+editor: visual
+---
+
+### La relación Capital-Trabajo como sistema Depredador-Presa para el caso de México 2000-2015
+
+## Univesidad Nacional Autónoma de México
+## ENES Unidad León
+
+### Materia: Análisis Numérico
+### Profesor: Dr. Carlos Yebra Montes
+### Integrantes:
+
+-   Gutiérrez Palomo Pedro Ángel.
+-   Macías Gutiérrez Angel Adair.
+-   Ramírez Calvillo María Guadalupe.
+-   Vázquez Cisneros Darío Emanuel.
+
+## Descripción:
+
+El modelo de Lotka-Volterra describe la interacción entre dos especies en un ecosistema, mostrando cómo fluctúan las poblaciones de presas y depredadores a lo largo del tiempo. Este modelo es fundamental para comprender las dinámicas de los ecosistemas y las relaciones entre las especies.
+
+En el modelo de Lotka-Volterra, los parámetros alfa, beta, gamma y delta representan las tasas de crecimiento, interacción y mortalidad de las poblaciones en un sistema de presa-depredador.
+
+### ¿Qué representa cada paramétro?
+
+-   El parámetro alfa representa la tasa de crecimiento intrínseca de la población de presas en ausencia de depredadores.
+-   El parámetro beta representa la eficiencia de la depredación, es decir, cuántas presas son capturadas por cada depredador.
+-   El parámetro gamma representa la tasa de mortalidad de los depredadores en ausencia de presas.
+-   El parámetro delta representa la tasa de crecimiento de la población de depredadores debido a la captura de presas.
+
+El modelo Lotka-Volterra queda representado a través de las siguientes Ecuaciones Diferenciales Ordinarias:
+
+$$
+\begin{cases}
+\frac{dL}{dt} = \alpha L - \beta LK \\
+\frac{dK}{dt} = \delta LK - \gamma K \\
+\end{cases}
+$$
+
+### Donde:
+
+-   $L$ son las Presas (Trabajo).
+-   $K$ son los Depredadores (Capital).
+
+## Análisis de las trayectorias del sistema.
+
+Para estudiar cómo evolucionan las soluciones de este tipo de sistema no lineal, se sigue un procedimiento estructurado que incluye los siguientes pasos:
+
+1.  Identificar los estados de equilibrio: Se determinan los valores constantes de $L$ y $K$ en los que el sistema se estabiliza, es decir, cuando ambas derivadas son cero.
+
+2.  Derivar la matriz Jacobiana: Se construye la matriz que describe cómo cambian las tasas de variación del sistema ante pequeños cambios en las poblaciones. Esta matriz se evalúa en los puntos de equilibrio encontrados.
+
+3.  Analizar los valores propios (eigenvalores): Los eigenvalores de la matriz Jacobiana permiten clasificar la naturaleza del equilibrio. Dependiendo de sus valores (reales o complejos), se puede prever el comportamiento del sistema cerca del equilibrio.
+
+4.  Interpretar las trayectorias locales
+
+    -   Si los eigenvalores son reales, el sistema puede presentar tres tipos de comportamientos alrededor del punto de equilibrio: nodos estables, nodos inestables o puntos de silla.
+    -   Si los eigenvalores son complejos, podrían darse trayectorias en espiral que convergen (espirales estables) o divergen (espirales inestables), o bien trayectorias cerradas que indican un ciclo límite.
+
+-   Nodo estable: Si ambos eigenvalores son negativos, el sistema se acerca al punto de equilibrio, como si algo lo atrayera.
+
+-   Nodo inestable: Si ambos eigenvalores son positivos, el sistema se aleja del punto de equilibrio, como si algo lo repeliera.
+
+-   Punto silla: Si un eigenvalor es positivo y el otro negativo, el punto de equilibrio atrae en una dirección pero repele en otra, como un valle entre montañas.
+
+5.  Espirales y centros:
+
+-   Si los eigenvalores son complejos y su parte real no es cero, las trayectorias giran en espiral: hacia adentro (estable) si la parte real es negativa o hacia afuera (inestable) si es positiva.
+-   Si la parte real es cero, las trayectorias forman círculos o elipses cerradas (centros), sin acercarse ni alejarse.
+
+------------------------------------------------------------------------
+
+### Encontrar los puntos de equilibrio.
+
+los puntos de equlibrio (x\* , y\*) satisfacen: $$
+\begin{cases}
+\ \alpha x^* - \beta x^* y^*\\
+\ \delta x^* y^* - \gamma y^* \\
+\end{cases}
+$$ Factorizamos cada ecuación:
+
+-   x\* (α−βy\*)=0
+
+-   y\* (δx\*−γ)=0
+
+De aqui hay dos soluciones:
+
+-   Trivial:
+
+1.  x\*= 0
+
+2.  y\*= 0
+
+-   No trivial: $$
+                α-βy^*=0 ==> y^*=\frac{α}{β}, δx^*-γ=0 ==> x^*=\frac{γ}{δ}
+    $$ Así $$
+                    (x^*, y^*) = (\frac{γ}{δ}, \frac{α}{β})
+    $$
+
+### Calcular la matriz jacobiana.
+
+La jacobiana del sistema $$ ( \dot{z} = (f(x, y), g(x, y)) )$$ es
+
+J(x, y) = $$
+\begin{pmatrix}
+\frac{\partial f}{\partial x} & \frac{\partial f}{\partial y} \\
+\frac{\partial g}{\partial x} & \frac{\partial g}{\partial y}
+\end{pmatrix} $$
+
+Aquí $$f(x, y) = \alpha x - \beta xy, \quad g(x, y) = \delta xy - \gamma y $$
+
+Entonces \[J(x, y) =
+
+$$
+\begin{pmatrix}
+\alpha - \beta y & -\beta x \\
+\delta y & \delta x - \gamma
+\end{pmatrix}
+$$ .
+
+### Evaluar J en cada punto de equilibrio.
+
+En (0,0)
+
+det(J-λI)=0: $$
+      (α-λ)(-γ-λ)-0=0 ==> λ1=α, λ2=-γ$$
+
+-   $$ λ1>0, λ2<0 ==\> punto silla $$
+
+2.3.2 En (γ/δ), (α/β)
+
+Sutituyendo x\* =γ/δ, y\*=α/β
+
+$$ J = \begin{pmatrix} 
+\alpha - \beta\left(\frac{\alpha}{\beta}\right) & -\beta\left(\frac{\gamma}{\delta}\right) \\ 
+\delta\left(\frac{\alpha}{\beta}\right) & \delta\left(\frac{\gamma}{\delta}\right) - \gamma 
+\end{pmatrix} 
+= \begin{pmatrix} 
+\alpha-\alpha & -\frac{\beta\gamma}{\delta} \\ 
+\frac{\delta\alpha}{\beta} & \gamma-\gamma 
+\end{pmatrix} =\begin{pmatrix} 
+0 & -\frac{\beta\gamma}{\delta} \\ 
+\frac{\delta\alpha}{\beta} & 0 
+\end{pmatrix} $$
+
+El polinomio característico es
+
+$$det(J-λI)= λ^2+\frac{\delta\alpha}{\beta} \frac{\beta\gamma}{\delta}=λ^2+αγ=0 $$ Por tanto
+
+$$λ(1,2) = ±i \sqrt\alpha\gamma$$
+
+-   Son puro imaginario (ℜλ=0) ==\> centro(trayectorias cerradas-orbitas limite neutrales)
+
+### Clasificación de trayectorias.
+
+Con base en los eigenvalores:
+
+| Punto de equilibrio | Eigenvalores | Tipo de trayectoria |
+|----|----|----|
+| (0, 0) | λ₁ = α \> 0, λ₂ = -γ \< 0 | Punto silla |
+| (γ/δ, α/β) | λ = ±i√(αγ) | Centro (trayectorias cerradas) |
+
+-   **Nodo estable:** ambos ℜ(λ) \< 0.
+-   **Nodo inestable:** ambos ℜ(λ) \> 0.
+-   **Punto silla:** signos opuestos en los reales.
+-   **Espiral estable/inestable:** ℜ(λ) ≠ 0 y pareja compleja.
+-   **Centro:** ℜ(λ) = 0, parte imaginaria ≠ 0 ⇒ órbitas periódicas \## Interpretación cualitativa
+
+**En el origen** $(0, 0)$, la coexistencia de eigenvalores de signo opuesto indica que pequeñas poblaciones de presa o depredador cerca de cero llevan a que una variable regrese al equilibrio (componente estable) mientras la otra crece (componente inestable): un **punto silla**.
+
+En el punto $\left(\frac{\gamma}{\delta}, \frac{\alpha}{\beta}\right)$, la ausencia de parte real en los eigenvalores produce **óvalos cerrados** en el plano $(x, y)$: fluctuaciones continuas y neutrales de poblaciones sin amortiguamiento ni crecimiento de amplitud.
+
+## Trayectoria.
+
+La trayectoria generada por el sistema de Lotka-Volterra describe cómo evolucionan dos variables interdependientes a lo largo del tiempo.
+
+No hay equilibrio constante, es decir, no se llega a un punto fijo donde ambas variables se estabilizan, sino que oscilan en ciclos.
+
+-   El sistema se comporta como un reloj: depredador y presa se persiguen mutuamente en el tiempo.
+
+-   Esto sugiere una relación estructural pero inestable, dependiente de condiciones externas
+
+```{python}
+
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+import plotly.graph_objects as go
+from scipy import integrate
+
+#| code-fold: true
+
+def f(t, X, alpha, beta, gamma, delta ):
+  x, y = X
+  return[alpha *x - beta* x*y,delta* x*y - gamma* y ]
+
+alpha = 1.5
+beta = 1
+delta = 1
+gamma = 3
+t0 = 0
+tf = 15
+s0 = np.array([10, 5])
+t_values = np.linspace(t0, tf, 10000)
+
+
+edo_sol= integrate.solve_ivp(f, [t0, tf], s0, t_eval = t_values, args = (alpha, beta, gamma, delta))
+
+plt.figure(figsize=(8,6))
+plt.plot(edo_sol.t, edo_sol.y[0], label ="b(t)")
+plt.plot(edo_sol.t, edo_sol.y[1], label ="s(t)")
+plt.grid()
+plt.legend()
+plt.show()
+```
+
+## Órbita.
+
+La órbita es la trayectoria que sigue un sistema en el espacio de fases; es decir, Es como si siguieras el camino que recorre el sistema depredador-presa en su evolución conjunta. En el caso del modelo de Lotka-Volterra, la órbita representa cómo cambian las poblaciones de depredadores y presas a lo largo del tiempo.
+
+-   Si el sistema tiene condiciones ideales, la trayectoria suele ser una órbita cerrada.
+
+-   Si el sistema tiene condiciones no ideales, la trayectoria puede ser una espiral o una línea recta.
+
+```{python}
+#| code-fold: true
+
+plt.figure(figsize=(8,6))
+plt.plot( edo_sol.y[0], edo_sol.y[1], label =" Órbita ")
+plt.grid()
+plt.legend()
+plt.show()
+plt.clf()
+
+```
+
+## Suposiciones de los modelos presa-depredador:
+
+-   Sin depredadores, la población de presas crece.
+
+-   A falta de presas, la población de depredadores se contrae.
+
+-   Ante los depredadores, la tasa de crecimiento de las presas se reduce.
+
+-   En presencia de la presa, aumenta la tasa de crecimiento de depredadores.
+
+## Justificación.
+
+La relación entre el trabajo y el capital es un tema central en la economía, ya que ambos factores son fundamentales para la producción y el crecimiento económico. El modelo de Lotka-Volterra proporciona una forma de analizar cómo estas dos variables interactúan y afectan el crecimiento económico a lo largo del tiempo. Al aplicar este modelo, podemos obtener información valiosa sobre la dinámica de la economía y cómo las políticas económicas pueden influir en la relación entre trabajo y capital.
+
+## Hipótesis.
+
+La relación entre trabajo y capital sigue un patrón de depredador-presa, donde el trabajo (presas) y el capital (depredadores) interactúan de manera dinámica presentado un estado de simbiosis.
+
+## Objetivo General.
+
+Analizar la relación entre el trabajo y el capital a través del modelo de Lotka-Volterra, identificando las dinámicas de crecimiento y las interacciones entre estas dos variables en un contexto económico.
+
+## Planteamiento.
+
+Durante el ultimo período la economía mexicano se ha afianzado su estatus como economía global, sin embargo, la relación entre el trabajo y el capital ha sido un tema de debate. En este contexto, el modelo de Lotka-Volterra se presenta como una herramienta útil para analizar la dinámica entre estas dos variables.
+
+```{python}
+#| code-fold: true
+
+# Parámetros adaptados del usuario
+alpha = -9.78e-9
+beta = -5.45e-14
+delta = 8.62e-14
+gamma = 7.64e-7
+
+# Parámetros de la simulación
+timestep = 0.01
+end_time = 200
+t = np.arange(0, end_time, timestep)
+
+# Inicialización de poblaciones
+prey = np.zeros_like(t)
+pred = np.zeros_like(t)
+prey[0] = 40  # presa inicial
+pred[0] = 9   # depredador inicial
+
+# Euler explícito para Lotka-Volterra
+for i in range(1, len(t)):
+    x, y = prey[i-1], pred[i-1]
+    dx = alpha * x + beta * x * y
+    dy = delta * x * y + gamma * y
+    prey[i] = x + dx * timestep
+    pred[i] = y + dy * timestep
+
+# Gráfica temporal
+plt.figure()
+plt.plot(t, prey, label='Presas (Capital)')
+plt.plot(t, pred, label='Depredadores (Trabajo)')
+plt.xlabel('Tiempo')
+plt.ylabel('Población')
+plt.title('Modelo Lotka-Volterra (Euler Explícito)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Plano fase
+plt.figure()
+plt.plot(prey, pred)
+plt.xlabel('Capital (Prey)')
+plt.ylabel('Trabajo (Predator)')
+plt.title('Plano Fase Lotka-Volterra')
+plt.grid(True)
+plt.show()
+
+```
+
+Los resultados obtenidos demuestran que, tal como se observa en la gráfica, el modelo planteado en esta investigación no tiene el comportamiento de un modelo, por tanto, la trayectoria de las variables corresponden a un sistema desacoplado y por tanto existiría desasociación en la relación capital trabajo. Esto significa que la ecuación no depende de la otra, por lo que dichas trayectorias encuentran su límite en el origen, atribuyéndose a lo anteriormente expuesto: el crecimiento del capital no depende de variaciones del trabajo.
+
+## Otra alternativa.
+
+Por lo consiguiente y como método de estudio se propone el siguiente modelo, basado en las derivadas de las variables, que se comporta como un sistema acoplado, es decir, la trayectoria de las variables depende de la otra. Este modelo se basa en el modelo de Lotka-Volterra y se presenta como una alternativa para estudiar la relación entre el trabajo y el capital, acotando el tiempo de estudio de 2018 a 2019.
+
+Forzando que los valores sean positivos, tenemos:
+
+```{python}
+#| code-fold: true
+# Reimportar bibliotecas después del reinicio
+import numpy as np
+from scipy.optimize import minimize
+
+# Datos reales de tasas (FBCF y IMSS)
+tasa_fbcf = np.array([3.77, 0.14, -2.14, -1.73, -4.06, 1.35, -0.10])
+tasa_imss = np.array([0.50, 0.39, 0.94, -4.74, 1.12, 0.88, 1.14])
+
+# Paso 1: Derivada central
+def derivative_central(y, h=1):
+    dy = np.zeros_like(y)
+    dy[1:-1] = (y[2:] - y[:-2]) / (2 * h)
+    dy[0] = (y[1] - y[0]) / h
+    dy[-1] = (y[-1] - y[-2]) / h
+    return dy
+
+# Derivadas observadas
+dx_dt_obs = derivative_central(tasa_fbcf)
+dy_dt_obs = derivative_central(tasa_imss)
+
+# Paso 2: Error basado en derivadas y el modelo LV
+def error_from_derivatives(params):
+    alpha, beta, delta, gamma = params
+    dx_model = alpha * tasa_fbcf - beta * tasa_fbcf * tasa_imss
+    dy_model = delta * tasa_fbcf * tasa_imss - gamma * tasa_imss
+    error = np.mean((dx_model - dx_dt_obs)**2 + (dy_model - dy_dt_obs)**2)
+    return error
+
+# Paso 3: Optimización
+initial_guess = [0.5, 0.1, 0.3, 0.1]
+bounds = [(0.001, 2), (0.001, 2), (0.001, 2), (0.001, 2)]
+result = minimize(error_from_derivatives, initial_guess, method='L-BFGS-B', bounds=bounds)
+
+# Resultados
+result.x
+```
+
+```{python}
+
+#| code-fold: true
+
+def f(t, X, alpha, beta, delta, gamma):
+  x, y = X
+  return[alpha*x - beta*x*y, delta*x*y-gamma*y]
+
+
+alpha = 0.001    # ⟵ crecimiento intrínseco negativo de las presas
+beta  = 0.18048651  # ⟵ interacción presa–depredador negativa
+delta = 0.001
+gamma = 0.001
+
+t0 = 0
+tf = 100
+s0 = np.array([10, 5])
+t_values = np.linspace(t0, tf, 1000)
+
+
+edo_sol= integrate.solve_ivp(f, [t0, tf], s0, t_eval = t_values, args = (alpha, beta, delta, gamma))
+
+plt.figure(figsize=(8,6))
+plt.plot(t_values, edo_sol.y[0], label ="x(t) = Presas (Trabajo)")
+plt.plot(t_values, edo_sol.y[1], label ="y(t) = Depredador (Capital)")
+plt.grid()
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(8,6))
+plt.plot(edo_sol.y[0], edo_sol.y[1], label ="Orbita")
+plt.grid()
+plt.legend()
+plt.show()
+```
+
+
+Sin forzar que los valores sean positivos, tenemos:
+
+
+```{python}
+#| code-fold: true
+
+bounds = [(-0.01, 2), (0.001, 2), (-0.01, 2), (0.001, 2)]
+result = minimize(error_from_derivatives, initial_guess, method='L-BFGS-B', bounds=bounds)
+
+# Resultados
+result.x
+```
+
+```{python}
+
+#| code-fold: true
+
+def f(t, X, alpha, beta, delta, gamma):
+  x, y = X
+  return[alpha*x - beta*x*y, delta*x*y-gamma*y]
+
+
+alpha = -0.01    # ⟵ crecimiento intrínseco negativo de las presas
+beta  = 0.17852252  # ⟵ interacción presa–depredador negativa
+delta = -0.01
+gamma = 0.001
+
+t0 = 0
+tf = 100
+s0 = np.array([10, 5])
+t_values = np.linspace(t0, tf, 1000)
+
+
+edo_sol= integrate.solve_ivp(f, [t0, tf], s0, t_eval = t_values, args = (alpha, beta, delta, gamma))
+
+plt.figure(figsize=(8,6))
+plt.plot(t_values, edo_sol.y[0], label ="x(t) = Presas (Trabajo)")
+plt.plot(t_values, edo_sol.y[1], label ="y(t) = Depredador (Capital)")
+plt.grid()
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(8,6))
+plt.plot(edo_sol.y[0], edo_sol.y[1], label ="Orbita")
+plt.grid()
+plt.legend()
+plt.show()
+```
+
+
+
+Como podemos apreciar pese al cambio de parámetros, el modelo sigue sin comportarse como un sistema acoplado, por lo que se concluye que la relación entre el trabajo y el capital no es dependiente entre sí, por lo que no existe una relación depredador-presa entre estas dos variables.
+
+
+## Conclusiones.
+
+-   El modelo de Lotka-Volterra no es adecuado para describir la relación entre el trabajo y el capital en México entre 2000 y 2015, ya que no se observa un comportamiento de depredador-presa.
+
+-   La relación entre el trabajo y el capital no es dependiente entre sí, lo que sugiere que el crecimiento del capital no depende de variaciones en el trabajo.
